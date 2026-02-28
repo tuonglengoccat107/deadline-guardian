@@ -163,7 +163,7 @@ if badges >= 15:
     level = "👑 TIME LORD"
     color = "gold"
 elif badges >= 8:
-    level = "🛡 MASTER GUARDIAN"
+    level = "🎀 MASTER GUARDIAN"
     color = "cyan"
 elif badges >= 3:
     level = "🥈 ADVANCED GUARDIAN"
@@ -256,6 +256,7 @@ save_database(database)
 
 st.divider()
 st.caption("Made with ❤️ by Cat Tuong | Streamlit App")
+
 
 
 
