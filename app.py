@@ -137,6 +137,18 @@ col1, col2, col3 = st.columns(3)
 
 with col1:
     st.metric("🏆 Total Badges", badges)
+    # ===== LEVEL SYSTEM =====
+if badges >= 10:
+    st.markdown("## 👑 Time Lord")
+    st.success("Bạn đã hoàn toàn kiểm soát thời gian!")
+elif badges >= 5:
+    st.markdown("## 🛡 Master Guardian")
+    st.info("Bạn đang làm chủ deadline!")
+elif badges >= 1:
+    st.markdown("## 🥉 Rookie Guardian")
+    st.write("Khởi đầu rất tốt!")
+else:
+    st.write("Chưa có badge nào.")
 
 with col2:
     st.metric("📚 Total Tasks", len(tasks))
@@ -201,3 +213,4 @@ save_database(database)
 
 st.divider()
 st.caption("Made with ❤️ by Cat Tuong | Streamlit App")
+
