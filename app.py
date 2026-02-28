@@ -16,10 +16,10 @@ st.markdown("""
     background-color: #0e1117;
 }
 h1, h2, h3 {
-    color: #00ffd5;
+    color: #eb9eaf;
 }
 div.stButton > button {
-    background-color: #00ffd5;
+    background-color: #eb9eaf;
     color: black;
     font-weight: bold;
     border-radius: 10px;
@@ -256,6 +256,7 @@ save_database(database)
 
 st.divider()
 st.caption("Made with ❤️ by Cat Tuong | Streamlit App")
+
 
 
 
