@@ -243,8 +243,22 @@ for index, t in enumerate(tasks):
             save_database(database)
             st.rerun()
 
-deadline_date = datetime.strptime(t["deadline"], "%Y-%m-%d").date()
-days_remaining = (deadline_date - datetime.today().date()).days
+if "deadline" in t and t["deadline"]:
+    try:
+        deadline_date = datetime.strptime(t["deadline"], "%Y-%m-%d").date()
+        days_remaining = (deadline_date - datetime.today().date()).days
+
+        st.write(f"⏳ Còn {days_remaining} ngày tới deadline")
+
+        if days_remaining <= 2:
+            st.error("🚨 Gấp!")
+        elif days_remaining <= 5:
+            st.warning("⚠ Sắp tới hạn")
+        else:
+            st.success("✔ Còn thời gian")
+
+    except:
+        st.warning("Deadline không hợp lệ")
 
 st.write(f"⏳ Còn {days_remaining} ngày tới deadline")
 
@@ -263,6 +277,7 @@ save_database(database)
 
 st.divider()
 st.caption("Made with ❤️ by Cat Tuong | Streamlit App")
+
 
 
 
