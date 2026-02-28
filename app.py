@@ -2,6 +2,7 @@ import streamlit as st
 from datetime import datetime, timedelta
 import json
 import os
+import pandas as pd
 
 st.set_page_config(
     page_title="Deadline Guardian",
@@ -9,6 +10,22 @@ st.set_page_config(
     layout="wide"
 )
 
+st.markdown("""
+<style>
+.main {
+    background-color: #0e1117;
+}
+h1, h2, h3 {
+    color: #00ffd5;
+}
+div.stButton > button {
+    background-color: #00ffd5;
+    color: black;
+    font-weight: bold;
+    border-radius: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
 # ================= DATABASE =================
 
 DB_FILE = "database.json"
@@ -157,6 +174,27 @@ with col3:
     urgent_tasks = sum(1 for t in tasks if t["days_left"] <= 2)
     st.metric("🔴 Urgent Tasks", urgent_tasks)
 
+st.divider()
+st.header("📊 Thống kê tiến độ")
+
+if tasks:
+    task_data = []
+
+    for t in tasks:
+        total = len(t["plan"])
+        done = sum(1 for s in t["plan"] if s["done"])
+        percent = int((done / total) * 100) if total > 0 else 0
+
+        task_data.append({
+            "Task": t["name"],
+            "Progress (%)": percent
+        })
+
+    df = pd.DataFrame(task_data)
+    st.bar_chart(df.set_index("Task"))
+else:
+    st.info("Chưa có dữ liệu để thống kê.")
+
 # ================= TASK LIST =================
 
 st.write("## 📚 Danh sách bài tập")
@@ -205,6 +243,18 @@ for index, t in enumerate(tasks):
             save_database(database)
             st.rerun()
 
+deadline_date = datetime.strptime(t["deadline"], "%Y-%m-%d").date()
+days_remaining = (deadline_date - datetime.today().date()).days
+
+st.write(f"⏳ Còn {days_remaining} ngày tới deadline")
+
+if days_remaining <= 2:
+    st.error("🚨 Gấp!")
+elif days_remaining <= 5:
+    st.warning("⚠ Sắp tới hạn")
+else:
+    st.success("✔ Còn thời gian")
+
 # ================= SAVE STATE =================
 
 database[username]["tasks"] = tasks
@@ -213,4 +263,5 @@ save_database(database)
 
 st.divider()
 st.caption("Made with ❤️ by Cat Tuong | Streamlit App")
+
 
