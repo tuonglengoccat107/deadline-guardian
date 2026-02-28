@@ -174,26 +174,6 @@ with col3:
     urgent_tasks = sum(1 for t in tasks if t["days_left"] <= 2)
     st.metric("🔴 Urgent Tasks", urgent_tasks)
 
-st.divider()
-st.header("📊 Thống kê tiến độ")
-
-if tasks:
-    task_data = []
-
-    for t in tasks:
-        total = len(t["plan"])
-        done = sum(1 for s in t["plan"] if s["done"])
-        percent = int((done / total) * 100) if total > 0 else 0
-
-        task_data.append({
-            "Task": t["name"],
-            "Progress (%)": percent
-        })
-
-    df = pd.DataFrame(task_data)
-    st.bar_chart(df.set_index("Task"))
-else:
-    st.info("Chưa có dữ liệu để thống kê.")
 
 # ================= TASK LIST =================
 
@@ -265,6 +245,7 @@ save_database(database)
 
 st.divider()
 st.caption("Made with ❤️ by Cat Tuong | Streamlit App")
+
 
 
 
