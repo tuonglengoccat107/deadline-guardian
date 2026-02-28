@@ -199,22 +199,16 @@ else:
 
 st.write("## 📚 Danh sách bài tập")
 
-for index, t in enumerate(tasks):
-
-    with st.container(border=True):
-
-        st.subheader(f"📌 {t['name']}")
-        st.caption(f"Loại: {t['type']} | Deadline: {t['deadline']}")
-
-        completed = 0
-
 if tasks:
 
-    for t in tasks:
+    for index, t in enumerate(tasks):
 
-        st.subheader(t["name"])
+        with st.container(border=True):
 
-        if "deadline" in t and t["deadline"]:
+            st.subheader(f"📌 {t['name']}")
+            st.caption(f"Loại: {t['type']} | Deadline: {t['deadline']}")
+
+            # ===== COUNTDOWN =====
             try:
                 deadline_date = datetime.strptime(t["deadline"], "%Y-%m-%d").date()
                 days_remaining = (deadline_date - datetime.today().date()).days
@@ -231,6 +225,36 @@ if tasks:
             except:
                 st.warning("Deadline không hợp lệ")
 
+            # ===== CHECKLIST =====
+            completed = 0
+
+            for i, step in enumerate(t["plan"]):
+
+                checkbox = st.checkbox(
+                    f"{step['date']} - {step['task']}",
+                    value=step.get("done", False),
+                    key=f"{index}-{i}"
+                )
+
+                if checkbox:
+                    tasks[index]["plan"][i]["done"] = True
+                    completed += 1
+                else:
+                    tasks[index]["plan"][i]["done"] = False
+
+            total_steps = len(t["plan"])
+            percent = int((completed / total_steps) * 100) if total_steps > 0 else 0
+
+            st.progress(percent)
+            st.caption(f"Progress: {percent}%")
+
+            # ===== BADGE =====
+            if percent == 100 and not t.get("celebrated", False):
+                badges += 1
+                tasks[index]["celebrated"] = True
+                st.success("🎉 Hoàn thành task!")
+                st.balloons()
+
 else:
     st.info("Chưa có task nào.")
 # ================= SAVE STATE =================
@@ -241,6 +265,7 @@ save_database(database)
 
 st.divider()
 st.caption("Made with ❤️ by Cat Tuong | Streamlit App")
+
 
 
 
