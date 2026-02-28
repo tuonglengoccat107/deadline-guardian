@@ -155,24 +155,28 @@ col1, col2, col3 = st.columns(3)
 with col1:
     st.metric("🏆 Total Badges", badges)
     # ===== LEVEL SYSTEM =====
-if badges >= 10:
-    st.markdown("## 👑 Time Lord")
-    st.success("Bạn đã hoàn toàn kiểm soát thời gian!")
-elif badges >= 5:
-    st.markdown("## 🛡 Master Guardian")
-    st.info("Bạn đang làm chủ deadline!")
+
+st.divider()
+st.header("🏆 Cấp độ người dùng")
+
+if badges >= 15:
+    level = "👑 TIME LORD"
+    color = "gold"
+elif badges >= 8:
+    level = "🛡 MASTER GUARDIAN"
+    color = "cyan"
+elif badges >= 3:
+    level = "🥈 ADVANCED GUARDIAN"
+    color = "orange"
 elif badges >= 1:
-    st.markdown("## 🥉 Rookie Guardian")
-    st.write("Khởi đầu rất tốt!")
+    level = "🥉 ROOKIE GUARDIAN"
+    color = "gray"
 else:
-    st.write("Chưa có badge nào.")
+    level = "🌱 NEWBIE"
+    color = "white"
 
-with col2:
-    st.metric("📚 Total Tasks", len(tasks))
-
-with col3:
-    urgent_tasks = sum(1 for t in tasks if t["days_left"] <= 2)
-    st.metric("🔴 Urgent Tasks", urgent_tasks)
+st.markdown(f"## {level}")
+st.write(f"Tổng badge: {badges}")
 
 
 # ================= TASK LIST =================
@@ -188,14 +192,16 @@ if tasks:
             st.subheader(f"📌 {t['name']}")
             st.caption(f"Loại: {t['type']} | Deadline: {t['deadline']}")
 
-            # ===== COUNTDOWN =====
+            # ===== AUTO UPDATE DAYS =====
             try:
                 deadline_date = datetime.strptime(t["deadline"], "%Y-%m-%d").date()
                 days_remaining = (deadline_date - datetime.today().date()).days
 
                 st.write(f"⏳ Còn {days_remaining} ngày tới deadline")
 
-                if days_remaining <= 2:
+                if days_remaining < 0:
+                    st.error("❌ Đã quá hạn!")
+                elif days_remaining <= 2:
                     st.error("🚨 Gấp!")
                 elif days_remaining <= 5:
                     st.warning("⚠ Sắp tới hạn")
@@ -228,23 +234,29 @@ if tasks:
             st.progress(percent)
             st.caption(f"Progress: {percent}%")
 
-            # ===== BADGE =====
+            # ===== BADGE SYSTEM =====
             if percent == 100 and not t.get("celebrated", False):
                 badges += 1
                 tasks[index]["celebrated"] = True
                 st.success("🎉 Hoàn thành task!")
                 st.balloons()
 
+            # ===== DELETE BUTTON =====
+            if st.button("🗑 Xóa bài này", key=f"delete-{index}"):
+                tasks.pop(index)
+                save_database(database)
+                st.rerun()
+
 else:
     st.info("Chưa có task nào.")
 # ================= SAVE STATE =================
-
 database[username]["tasks"] = tasks
 database[username]["badges"] = badges
 save_database(database)
 
 st.divider()
 st.caption("Made with ❤️ by Cat Tuong | Streamlit App")
+
 
 
 
