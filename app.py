@@ -9,38 +9,50 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("⏳ Deadline Guardian")
-st.subheader("Trợ lý bảo vệ bạn khỏi trễ deadline")
+# ================= DATABASE =================
 
-DB_FILE = "tasks.json"
+DB_FILE = "database.json"
 
-# ===== DATABASE =====
-def load_tasks():
+def load_database():
     if os.path.exists(DB_FILE):
         with open(DB_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    return []
+    return {}
 
-def save_tasks(tasks):
+def save_database(data):
     with open(DB_FILE, "w", encoding="utf-8") as f:
-        json.dump(tasks, f, ensure_ascii=False, indent=4)
+        json.dump(data, f, ensure_ascii=False, indent=4)
 
-tasks = load_tasks()
-BADGE_FILE = "badges.json"
+database = load_database()
 
-def load_badges():
-    if os.path.exists(BADGE_FILE):
-        with open(BADGE_FILE, "r") as f:
-            return json.load(f)
-    return 0
+# ================= LOGIN =================
 
-def save_badges(count):
-    with open(BADGE_FILE, "w") as f:
-        json.dump(count, f)
+st.sidebar.title("🔐 Login")
 
-badges = load_badges()
+username = st.sidebar.text_input("Nhập tên của bạn")
 
-# ===== THÊM BÀI TẬP =====
+if not username:
+    st.warning("Vui lòng nhập tên để sử dụng app")
+    st.stop()
+
+if username not in database:
+    database[username] = {
+        "tasks": [],
+        "badges": 0
+    }
+    save_database(database)
+
+user_data = database[username]
+tasks = user_data["tasks"]
+badges = user_data["badges"]
+
+# ================= TITLE =================
+
+st.title("⏳ Deadline Guardian")
+st.subheader("Trợ lý bảo vệ bạn khỏi trễ deadline")
+
+# ================= ADD TASK =================
+
 st.write("## ➕ Thêm bài tập mới")
 
 task_name = st.text_input("Tên bài tập")
@@ -66,15 +78,15 @@ if st.button("Tạo kế hoạch bằng AI"):
                 "Nghiên cứu tài liệu",
                 "Làm slide",
                 "Chỉnh sửa slide",
-                "Luyện tập thuyết trình"
+                "Luyện tập"
             ]
         elif task_type == "Bài luận":
             stages = [
                 "Tìm tài liệu",
                 "Lập dàn ý",
                 "Viết bản nháp",
-                "Chỉnh sửa nội dung",
-                "Hoàn thiện & kiểm tra"
+                "Chỉnh sửa",
+                "Hoàn thiện"
             ]
         elif task_type == "Ôn thi":
             stages = [
@@ -86,7 +98,7 @@ if st.button("Tạo kế hoạch bằng AI"):
             ]
         else:
             stages = [
-                "Hiểu yêu cầu đề",
+                "Hiểu đề",
                 "Làm bài",
                 "Kiểm tra lại"
             ]
@@ -105,14 +117,19 @@ if st.button("Tạo kế hoạch bằng AI"):
             "deadline": str(deadline),
             "type": task_type,
             "days_left": days_left,
-            "plan": plan
+            "plan": plan,
+            "celebrated": False
         }
 
         tasks.append(new_task)
-        save_tasks(tasks)
+
+        database[username]["tasks"] = tasks
+        save_database(database)
+
         st.success("Đã tạo kế hoạch thành công!")
 
-# ===== DASHBOARD =====
+# ================= DASHBOARD =================
+
 st.divider()
 st.header("📊 Dashboard")
 
@@ -128,43 +145,16 @@ with col3:
     urgent_tasks = sum(1 for t in tasks if t["days_left"] <= 2)
     st.metric("🔴 Urgent Tasks", urgent_tasks)
 
-# Xác định cấp độ
-if badges >= 10:
-    st.markdown("## 👑 Time Lord")
-    st.markdown("Bạn đã hoàn toàn kiểm soát thời gian!")
-elif badges >= 5:
-    st.markdown("## 🛡 Master Guardian")
-    st.markdown("Bạn đang làm chủ deadline!")
-elif badges >= 1:
-    st.markdown("## 🥉 Rookie Guardian")
-    st.markdown("Khởi đầu rất tốt!")
-else:
-    st.markdown("Chưa có badge nào.")
+# ================= TASK LIST =================
 
-total_tasks = len(tasks)
-urgent_tasks = sum(1 for t in tasks if t["days_left"] <= 2)
-
-st.write(f"📚 Tổng số bài: {total_tasks}")
-st.write(f"🔴 Sắp tới hạn (≤2 ngày): {urgent_tasks}")
-
-# ===== HIỂN THỊ BÀI TẬP =====
 st.write("## 📚 Danh sách bài tập")
 
 for index, t in enumerate(tasks):
 
-    task_type = t.get("type", "Không xác định")
-
     with st.container(border=True):
-        st.subheader(f"📌 {t['name']}")
-        st.caption(f"Loại: {task_type} | Deadline: {t['deadline']}")
 
-        # Mức độ nguy cơ
-        if t["days_left"] >= 5:
-            st.markdown("🟢 An toàn")
-        elif 2 <= t["days_left"] <= 4:
-            st.markdown("🟡 Nguy cơ trung bình")
-        else:
-            st.markdown("🔴 Nguy cơ cao")
+        st.subheader(f"📌 {t['name']}")
+        st.caption(f"Loại: {t['type']} | Deadline: {t['deadline']}")
 
         completed = 0
 
@@ -172,7 +162,7 @@ for index, t in enumerate(tasks):
             checkbox = st.checkbox(
                 f"{step['date']} - {step['task']}",
                 value=step.get("done", False),
-                key=f"{index}-{i}"
+                key=f"{username}-{index}-{i}"
             )
 
             if checkbox:
@@ -183,43 +173,31 @@ for index, t in enumerate(tasks):
 
         total_steps = len(t["plan"])
         progress = completed / total_steps if total_steps > 0 else 0
-
         percent = int(progress * 100)
+
         st.progress(percent)
-        st.caption(f"Progress: {percent}% completed")
+        st.caption(f"Progress: {percent}%")
 
-        if percent == 100:
-            if not t.get("celebrated", False):
-                badges += 1
-                save_badges(badges)
-                tasks[index]["celebrated"] = True
-                save_tasks(tasks)
-
-            st.success("🎉 HOÀN THÀNH! Bạn đã đánh bại deadline!")
+        if percent == 100 and not t["celebrated"]:
+            badges += 1
+            tasks[index]["celebrated"] = True
             st.balloons()
 
-            if badges >= 10:
-                title = "👑 TIME LORD"
-            elif badges >= 5:
-                title = "🛡 MASTER GUARDIAN"
-            else:
-                title = "🥉 ROOKIE GUARDIAN"
+        if percent == 100:
+            st.success("🎉 HOÀN THÀNH!")
 
-            st.markdown("## 🏆 BADGE UNLOCKED!")
-            st.markdown(f"### {title}")
-
-            st.image(
-                "https://media.giphy.com/media/111ebonMs90YLu/giphy.gif",
-                caption="Deadline Guardian tự hào về bạn 😎",
-            )
-
-        # Nút xoá
-        if st.button("🗑 Xoá bài này", key=f"delete-{index}"):
+        if st.button("🗑 Xoá bài này", key=f"delete-{username}-{index}"):
             tasks.pop(index)
-            save_tasks(tasks)
+            database[username]["tasks"] = tasks
+            database[username]["badges"] = badges
+            save_database(database)
             st.rerun()
 
-save_tasks(tasks)
+# ================= SAVE STATE =================
+
+database[username]["tasks"] = tasks
+database[username]["badges"] = badges
+save_database(database)
 
 st.divider()
 st.caption("Made with ❤️ by Cat Tuong | Streamlit App")
