@@ -1,0 +1,20 @@
+[
+    {
+        "name": "anh",
+        "deadline": "2026-03-02",
+        "type": "Thuyết trình",
+        "days_left": 2,
+        "plan": [
+            {
+                "date": "2026-02-28",
+                "task": "Lên ý tưởng",
+                "done": false
+            },
+            {
+                "date": "2026-03-01",
+                "task": "Nghiên cứu tài liệu",
+                "done": false
+            }
+        ]
+    }
+]
