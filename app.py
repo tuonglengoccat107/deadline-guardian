@@ -208,28 +208,31 @@ for index, t in enumerate(tasks):
 
         completed = 0
 
-      for t in tasks:
+if tasks:
 
-            st.subheader(t["name"])
-        
-            # Countdown phải ở đây
-            if "deadline" in t and t["deadline"]:
-                try:
-                    deadline_date = datetime.strptime(t["deadline"], "%Y-%m-%d").date()
-                    days_remaining = (deadline_date - datetime.today().date()).days
-        
-                    st.write(f"⏳ Còn {days_remaining} ngày tới deadline")
-        
-                    if days_remaining <= 2:
-                        st.error("🚨 Gấp!")
-                    elif days_remaining <= 5:
-                        st.warning("⚠ Sắp tới hạn")
-                    else:
-                        st.success("✔ Còn thời gian")
-        
-                except:
-                    st.warning("Deadline không hợp lệ")
+    for t in tasks:
 
+        st.subheader(t["name"])
+
+        if "deadline" in t and t["deadline"]:
+            try:
+                deadline_date = datetime.strptime(t["deadline"], "%Y-%m-%d").date()
+                days_remaining = (deadline_date - datetime.today().date()).days
+
+                st.write(f"⏳ Còn {days_remaining} ngày tới deadline")
+
+                if days_remaining <= 2:
+                    st.error("🚨 Gấp!")
+                elif days_remaining <= 5:
+                    st.warning("⚠ Sắp tới hạn")
+                else:
+                    st.success("✔ Còn thời gian")
+
+            except:
+                st.warning("Deadline không hợp lệ")
+
+else:
+    st.info("Chưa có task nào.")
 # ================= SAVE STATE =================
 
 database[username]["tasks"] = tasks
@@ -238,6 +241,7 @@ save_database(database)
 
 st.divider()
 st.caption("Made with ❤️ by Cat Tuong | Streamlit App")
+
 
 
 
