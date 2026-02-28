@@ -208,66 +208,27 @@ for index, t in enumerate(tasks):
 
         completed = 0
 
-        for i, step in enumerate(t["plan"]):
-            checkbox = st.checkbox(
-                f"{step['date']} - {step['task']}",
-                value=step.get("done", False),
-                key=f"{username}-{index}-{i}"
-            )
+      for t in tasks:
 
-            if checkbox:
-                tasks[index]["plan"][i]["done"] = True
-                completed += 1
+    st.subheader(t["name"])
+
+    # Countdown phải ở đây
+    if "deadline" in t and t["deadline"]:
+        try:
+            deadline_date = datetime.strptime(t["deadline"], "%Y-%m-%d").date()
+            days_remaining = (deadline_date - datetime.today().date()).days
+
+            st.write(f"⏳ Còn {days_remaining} ngày tới deadline")
+
+            if days_remaining <= 2:
+                st.error("🚨 Gấp!")
+            elif days_remaining <= 5:
+                st.warning("⚠ Sắp tới hạn")
             else:
-                tasks[index]["plan"][i]["done"] = False
+                st.success("✔ Còn thời gian")
 
-        total_steps = len(t["plan"])
-        progress = completed / total_steps if total_steps > 0 else 0
-        percent = int(progress * 100)
-
-        st.progress(percent)
-        st.caption(f"Progress: {percent}%")
-
-        if percent == 100 and not t["celebrated"]:
-            badges += 1
-            tasks[index]["celebrated"] = True
-            st.balloons()
-
-        if percent == 100:
-            st.success("🎉 HOÀN THÀNH!")
-
-        if st.button("🗑 Xoá bài này", key=f"delete-{username}-{index}"):
-            tasks.pop(index)
-            database[username]["tasks"] = tasks
-            database[username]["badges"] = badges
-            save_database(database)
-            st.rerun()
-
-if "deadline" in t and t["deadline"]:
-    try:
-        deadline_date = datetime.strptime(t["deadline"], "%Y-%m-%d").date()
-        days_remaining = (deadline_date - datetime.today().date()).days
-
-        st.write(f"⏳ Còn {days_remaining} ngày tới deadline")
-
-        if days_remaining <= 2:
-            st.error("🚨 Gấp!")
-        elif days_remaining <= 5:
-            st.warning("⚠ Sắp tới hạn")
-        else:
-            st.success("✔ Còn thời gian")
-
-    except:
-        st.warning("Deadline không hợp lệ")
-
-st.write(f"⏳ Còn {days_remaining} ngày tới deadline")
-
-if days_remaining <= 2:
-    st.error("🚨 Gấp!")
-elif days_remaining <= 5:
-    st.warning("⚠ Sắp tới hạn")
-else:
-    st.success("✔ Còn thời gian")
+        except:
+            st.warning("Deadline không hợp lệ")
 
 # ================= SAVE STATE =================
 
@@ -277,6 +238,7 @@ save_database(database)
 
 st.divider()
 st.caption("Made with ❤️ by Cat Tuong | Streamlit App")
+
 
 
 
